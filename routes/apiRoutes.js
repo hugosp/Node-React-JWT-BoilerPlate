@@ -1,6 +1,7 @@
 const express   = require('express');
 const jwt       = require('jsonwebtoken');
 const validator = require('validator');
+const bCrypt    = require('bcrypt-nodejs');
 const apiRoutes = express.Router(); 
 
 module.exports = function(app,User) {
@@ -11,7 +12,7 @@ module.exports = function(app,User) {
             if (!user) {
                 res.status(401).json({ success: false, message: 'Authentication failed. Email not found.' });
             } else if (user) {
-                if (user.password != req.body.password) {
+                if (!bCrypt.compareSync(req.body.password, user.password)) {
                     res.status(401).json({ success: false, message: 'Authentication failed. Wrong password.' });
                 } else {
                     var token = jwt.sign({id:user._id,user:user.name,email:user.email}, app.get('superSecret'), {
@@ -35,7 +36,7 @@ module.exports = function(app,User) {
             let newUser = new User({
                 name: req.body.name,
                 email: req.body.email,
-                password: req.body.password
+                password: bCrypt.hashSync(req.body.password, bCrypt.genSaltSync(10), null) //createHash(req.body.password)
             });
             newUser.save(function(err){
                 if(err) { throw err; }
@@ -82,7 +83,6 @@ module.exports = function(app,User) {
 
     app.use('/api', apiRoutes);
 }
-
 
 
 function validateSignupForm(payload) {
