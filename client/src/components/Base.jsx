@@ -7,11 +7,11 @@ class Base extends React.Component {
     return (
       <div className="container">  
         <header>
+          <div className="title">JWT ffs.</div>
           <div className="nav">
             <ul>
               <li><IndexLink to="/">Home</IndexLink></li>
-              <li><Link to="/check">CheckAPI</Link></li>
-              <li><Link to="/profile">Profile</Link></li>
+              {Auth.isUserAuthenticated() &&  <li><Link to="/profile">Profile</Link></li> }
               {Auth.isUserAuthenticated() &&  <li><Link to="/logout">Log out</Link></li> }
               {!Auth.isUserAuthenticated() && <li><Link to="/login">Log in</Link></li> }
               {!Auth.isUserAuthenticated() && <li><Link to="/signup">Sign up</Link></li> }

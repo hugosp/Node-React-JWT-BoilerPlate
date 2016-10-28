@@ -1,5 +1,6 @@
 import React from 'react';
-import {Link} from 'react-router';
+import {Link, browserHistory} from 'react-router';
+import request from 'superagent';
 
 class SignUpForm extends React.Component {
   constructor() {
@@ -11,31 +12,27 @@ class SignUpForm extends React.Component {
   processForm(event) {
     event.preventDefault();
     let self = this;
-    let history = this.props.history;
 
     let user = 'name=' + encodeURIComponent(this.refs.name.value)
              + '&email=' + encodeURIComponent(this.refs.email.value)
              + '&password=' + encodeURIComponent(this.refs.password.value);
 
-    // create an AJAX request
-    let xhr = new XMLHttpRequest();
-    xhr.open('post', '/api/signup');
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-      let state = {};
-      if (this.status == 200) {                 //  if success
-        state.errorMessage = '';
-        self.setState(state);
-        localStorage.setItem('successMessage', this.response.message);
-        console.log(this.response);
-        history.replace('/login');
-      } else {
-        state.errorMessage = this.response.message;
-        self.setState(state);
-      }
-    };
-    xhr.send(user);
+    request
+      .post('/api/signup')
+      .type('form')
+      .send(user)
+      .end(function(err, res){
+        let state = {};
+        if (res.status == 200) {
+          state.errorMessage = '';
+          self.setState(state);
+          localStorage.setItem('successMessage', res.body.message);
+          browserHistory.push('/login');
+        } else {
+          state.errorMessage = res.body.message;
+          self.setState(state);
+        }
+      });
   }
 
   render() {

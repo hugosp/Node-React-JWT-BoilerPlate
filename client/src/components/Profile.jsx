@@ -1,5 +1,6 @@
 import React from 'react';
 import {Link} from 'react-router';
+import request from 'superagent';
 import Auth from '../modules/Auth';
 
 
@@ -13,27 +14,24 @@ class Profile extends React.Component {
   componentDidMount() {
     let self = this;
 
-    let xhr = new XMLHttpRequest();
-    xhr.open('get', '/api/profile');
-    xhr.setRequestHeader('Content-type', 'application/x-access-token');
-    // set the authorization HTTP header
-    xhr.setRequestHeader('x-access-token', Auth.getToken());
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-      let state = {};
-
-      if (this.status == 200) {
-        state.user = this.response;
-        self.setState(state);
-     }
-    };
-    xhr.send();
+    request
+      .get('/api/profile')
+      .set('x-access-token', Auth.getToken())
+      .set('Accept', 'application/json')
+      .end(function(err, res){
+        let state = {};
+        if (res.status == 200) {
+          state.user = res.body;
+          self.setState(state);
+        }
+      });
   }
   render() {
 
     return (
       <div className="container">
         <h5>User Details</h5>
+        <code>Id : {this.state.user.id}</code><br />
         <code>Name : {this.state.user.user}</code><br />
         <code>Email : {this.state.user.email}</code>
         

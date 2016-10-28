@@ -1,10 +1,11 @@
 import React from 'react';
-import {Link} from 'react-router';
+import {browserHistory, Link} from 'react-router';
+import request from 'superagent';
 import Auth from '../modules/Auth';
 
 class LoginForm extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       errorMessage: '',
     };
@@ -13,28 +14,25 @@ class LoginForm extends React.Component {
     event.preventDefault();
 
     let self = this;
-    let history = this.props.history;
     let user = 'email=' + encodeURIComponent(this.refs.email.value)
              + '&password=' + encodeURIComponent(this.refs.password.value);
 
-    // --- AJAX BABY ---------------------------------------------
-    let xhr = new XMLHttpRequest();
-    xhr.open('post', '/api/authenticate');
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-      let state = {};
-      if (this.status == 200) {               // success
-        state.errorMessage = '';
-        self.setState(state);
-        Auth.authenticateUser(this.response.token);
-        history.replace('/');
-      } else {
-        state.errorMessage = this.response.message;
-        self.setState(state);
-      }
-    };
-    xhr.send(user);
+    request
+      .post('/api/authenticate')
+      .type('form')
+      .send(user)
+      .end(function(err, res){
+        let state = {};
+        if (res.status == 200) {
+          state.errorMessage = '';
+          self.setState(state);
+          Auth.authenticateUser(res.body.token);
+          browserHistory.push('/');
+        } else {
+          state.errorMessage = res.body.message;
+          self.setState(state);
+        }
+      });
     localStorage.removeItem('successMessage');
   }
   render() {
